@@ -20,7 +20,7 @@ Stack: HTML/CSS/JS (frontend) · Node.js + Express (backend) · MySQL (banco).
 - `public/` – telas: login, dashboard, livros, empréstimos, relatórios
 - `docs/documentacao.md` – requisitos funcionais, DER, casos de teste e infraestrutura
 
-## Documentacao
+## Documentação
 # Sistema de Biblioteca Escolar – Documentação Técnica
 
 ## 1. Requisitos Funcionais
