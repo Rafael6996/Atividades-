@@ -1,0 +1,51 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Livros - Biblioteca</title><link rel="stylesheet" href="style.css"></head><body>
+<nav id="menu"></nav>
+<main><h2>Livros</h2>
+<div class="card"><form id="f" novalidate><input type="hidden" id="id">
+<div class="row">
+<div><label for="titulo">Título</label><input id="titulo"></div>
+<div><label for="autor">Autor</label><input id="autor"></div>
+<div><label for="categoria">Categoria</label><input id="categoria"></div>
+<div><label for="quantidade">Quantidade disponível</label><input id="quantidade" type="number" min="0"></div>
+</div>
+<button type="button" id="cadastrar">Cadastrar</button><button type="button" id="alterar" class="sec">Alterar</button><button type="button" id="limpar" class="sec">Limpar</button>
+</form><div id="msg" class="msg"></div></div>
+<div class="card"><label for="busca">Pesquisar (título, autor ou categoria)</label>
+<input id="busca" placeholder="Digite para pesquisar..."><br><br>
+<table><thead><tr><th>Título</th><th>Autor</th><th>Categoria</th><th>Qtd.</th><th>Ações</th></tr></thead><tbody id="lista"></tbody></table></div></main>
+<script src="app.js"></script>
+<script>
+let livros = [];
+const campos = () => ({ titulo: titulo.value, autor: autor.value, categoria: categoria.value, quantidade: quantidade.value });
+function validar() {
+  const d = campos();
+  if (!d.titulo.trim() || !d.autor.trim() || !d.categoria.trim() || d.quantidade === '') return 'Preencha todos os campos obrigatórios.';
+  if (Number(d.quantidade) < 0 || !Number.isInteger(Number(d.quantidade))) return 'A quantidade deve ser um número inteiro maior ou igual a zero.';
+  return null;
+}
+function limpar() { f.reset(); id.value = ''; document.getElementById('msg').className = 'msg'; }
+async function carregar() {
+  livros = await api('/api/livros?q=' + encodeURIComponent(busca.value));
+  lista.innerHTML = livros.map(l => `<tr><td>${esc(l.titulo)}</td><td>${esc(l.autor)}</td><td>${esc(l.categoria)}</td><td>${l.quantidade}</td>
+  <td><button class="sm" data-e="${l.id_livro}">Editar</button><button class="sm del" data-x="${l.id_livro}">Excluir</button></td></tr>`).join('')
+  || '<tr><td colspan="5">Nenhum livro encontrado.</td></tr>';
+}
+cadastrar.onclick = async () => {
+  const erro = validar(); if (erro) return msg(erro);
+  try { await api('/api/livros', 'POST', campos()); limpar(); msg('Livro cadastrado com sucesso!', 'ok'); carregar(); } catch (e) { msg(e.message); }
+};
+alterar.onclick = async () => {
+  if (!id.value) return msg('Selecione um livro na lista (Editar) para alterar.');
+  const erro = validar(); if (erro) return msg(erro);
+  try { await api('/api/livros/' + id.value, 'PUT', campos()); limpar(); msg('Livro alterado com sucesso!', 'ok'); carregar(); } catch (e) { msg(e.message); }
+};
+document.getElementById('limpar').onclick = limpar;
+busca.oninput = carregar;
+lista.onclick = async e => {
+  const ed = e.target.dataset.e, ex = e.target.dataset.x;
+  if (ed) { const l = livros.find(x => x.id_livro == ed); id.value = l.id_livro; titulo.value = l.titulo; autor.value = l.autor; categoria.value = l.categoria; quantidade.value = l.quantidade; scrollTo(0, 0); }
+  if (ex && confirm('Excluir este livro?')) { try { await api('/api/livros/' + ex, 'DELETE'); msg('Livro excluído.', 'ok'); carregar(); } catch (er) { msg(er.message); } }
+};
+iniciar('livros.html').then(carregar);
+</script></body></html>

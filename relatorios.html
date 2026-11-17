@@ -1,0 +1,19 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Relatórios - Biblioteca</title><link rel="stylesheet" href="style.css"></head><body>
+<nav id="menu"></nav>
+<main><h2>Relatórios</h2>
+<div class="card"><h3>🏆 Livros mais emprestados</h3>
+<table><thead><tr><th>#</th><th>Título</th><th>Autor</th><th>Empréstimos</th></tr></thead><tbody id="top"></tbody></table></div>
+<div class="card"><h3>Relatório de empréstimos</h3>
+<table><thead><tr><th>Usuário</th><th>Livro</th><th>Empréstimo</th><th>Previsto</th><th>Situação</th></tr></thead><tbody id="emp"></tbody></table></div></main>
+<script src="app.js"></script>
+<script>
+const fmt = s => s ? s.split('-').reverse().join('/') : '';
+(async () => {
+  await iniciar('relatorios.html');
+  const [top, emp] = await Promise.all([api('/api/relatorios/mais-emprestados'), api('/api/emprestimos')]);
+  document.getElementById('top').innerHTML = top.map((l, i) => `<tr><td>${i + 1}</td><td>${esc(l.titulo)}</td><td>${esc(l.autor)}</td><td>${l.total}</td></tr>`).join('');
+  document.getElementById('emp').innerHTML = emp.map(e => `<tr><td>${esc(e.usuario)}</td><td>${esc(e.livro)}</td><td>${fmt(e.data_emprestimo)}</td><td>${fmt(e.data_devolucao)}</td>
+  <td>${e.data_devolvido ? 'Devolvido em ' + fmt(e.data_devolvido) : 'Em aberto'}</td></tr>`).join('');
+})();
+</script></body></html>

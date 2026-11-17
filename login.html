@@ -1,0 +1,21 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login - Biblioteca</title><link rel="stylesheet" href="style.css"></head><body>
+<div class="login card"><h2>📚 Biblioteca Escolar</h2>
+<form id="f" novalidate>
+<label for="email">E-mail</label><input id="email" type="email" placeholder="ana@escola.com">
+<label for="senha">Senha</label><input id="senha" type="password">
+<button type="submit">Entrar</button><button type="button" class="sec" id="limpar">Limpar</button>
+</form><div id="msg" class="msg"></div></div>
+<script src="app.js"></script>
+<script>
+const f = document.getElementById('f');
+f.onsubmit = async e => {
+  e.preventDefault();
+  const email = f.email.value.trim(), senha = f.senha.value;
+  if (!email || !senha) return msg('Preencha o e-mail e a senha.');
+  if (!/^\S+@\S+\.\S+$/.test(email)) return msg('Informe um e-mail válido.');
+  try { await api('/api/login', 'POST', { email, senha }); location.href = 'index.html'; }
+  catch (err) { msg(err.message); }
+};
+document.getElementById('limpar').onclick = () => { f.reset(); document.getElementById('msg').className = 'msg'; f.email.focus(); };
+</script></body></html>
