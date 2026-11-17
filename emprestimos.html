@@ -1,0 +1,38 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Empréstimos - Biblioteca</title><link rel="stylesheet" href="style.css"></head><body>
+<nav id="menu"></nav>
+<main><h2>Empréstimos</h2>
+<div class="card"><form id="f" novalidate><div class="row">
+<div><label for="usuario">Usuário</label><select id="usuario"></select></div>
+<div><label for="livro">Livro</label><select id="livro"></select></div>
+<div><label for="dataEmp">Data do empréstimo</label><input id="dataEmp" type="date"></div>
+<div><label for="dataPrev">Data prevista para devolução</label><input id="dataPrev" type="date"></div>
+</div><button type="button" id="registrar">Registrar empréstimo</button></form><div id="msg" class="msg"></div></div>
+<div class="card"><h3>Histórico</h3>
+<table><thead><tr><th>Usuário</th><th>Livro</th><th>Empréstimo</th><th>Previsto</th><th>Devolvido</th><th>Ação</th></tr></thead><tbody id="lista"></tbody></table></div></main>
+<script src="app.js"></script>
+<script>
+const hoje = (d = 0) => { const x = new Date(); x.setDate(x.getDate() + d); return x.toLocaleDateString('sv-SE'); };
+const fmt = s => s ? s.split('-').reverse().join('/') : '';
+async function carregar() {
+  const [us, ls, es] = await Promise.all([api('/api/usuarios'), api('/api/livros'), api('/api/emprestimos')]);
+  usuario.innerHTML = '<option value="">Selecione...</option>' + us.map(u => `<option value="${u.id_usuario}">${esc(u.nome)}</option>`).join('');
+  livro.innerHTML = '<option value="">Selecione...</option>' + ls.map(l => `<option value="${l.id_livro}">${esc(l.titulo)} (${l.quantidade} disp.)</option>`).join('');
+  lista.innerHTML = es.map(e => `<tr><td>${esc(e.usuario)}</td><td>${esc(e.livro)}</td><td>${fmt(e.data_emprestimo)}</td><td>${fmt(e.data_devolucao)}</td>
+  <td>${e.data_devolvido ? fmt(e.data_devolvido) : '<em>Ativo</em>'}</td>
+  <td>${e.data_devolvido ? '' : `<button class="sm" data-d="${e.id_emprestimo}">Registrar devolução</button>`}</td></tr>`).join('');
+}
+registrar.onclick = async () => {
+  if (!usuario.value || !livro.value || !dataEmp.value || !dataPrev.value) return msg('Preencha todos os campos.');
+  try {
+    await api('/api/emprestimos', 'POST', { id_usuario: usuario.value, id_livro: livro.value, data_emprestimo: dataEmp.value, data_devolucao: dataPrev.value });
+    msg('Empréstimo registrado com sucesso!', 'ok'); carregar();
+  } catch (e) { msg(e.message); }
+};
+lista.onclick = async e => {
+  if (!e.target.dataset.d) return;
+  try { await api(`/api/emprestimos/${e.target.dataset.d}/devolver`, 'POST'); msg('Devolução registrada!', 'ok'); carregar(); } catch (er) { msg(er.message); }
+};
+dataEmp.value = hoje(); dataPrev.value = hoje(7);
+iniciar('emprestimos.html').then(carregar);
+</script></body></html>
