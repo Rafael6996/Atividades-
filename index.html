@@ -1,0 +1,17 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Início - Biblioteca</title><link rel="stylesheet" href="style.css"></head><body>
+<nav id="menu"></nav>
+<main><h2>Dashboard</h2>
+<div class="grid">
+<div class="stat"><b id="livros">–</b>Livros cadastrados</div>
+<div class="stat"><b id="ativos">–</b>Empréstimos ativos</div>
+<div class="stat"><b id="usuarios">–</b>Usuários</div>
+</div></main>
+<script src="app.js"></script>
+<script>
+(async () => {
+  await iniciar('index.html');
+  const d = await api('/api/dashboard');
+  livros.textContent = d.livros; ativos.textContent = d.emprestimosAtivos; usuarios.textContent = d.usuarios;
+})();
+</script></body></html>
